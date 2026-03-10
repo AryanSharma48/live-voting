@@ -33,6 +33,7 @@ export default function AdminLiveLeaderboard() {
       setIsClearing(false);
     }
   };
+
   useEffect(() => {
     fetchLeaderboard();
     const channel = supabase
@@ -81,56 +82,78 @@ export default function AdminLiveLeaderboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#181818] via-[#23272e] to-[#0d0d0d] text-white flex flex-col font-sans">
       {/* Header */}
-      <header className="flex justify-between items-center p-8 border-b border-[#222] bg-[#23272e]/80 backdrop-blur-lg w-full shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
-        <div className="flex items-center space-x-6">
+      {/* Changed flex layout and padding for mobile stacking */}
+      <header className="flex flex-col md:flex-row justify-between items-center p-4 md:p-8 border-b border-[#222] bg-[#23272e]/80 backdrop-blur-lg w-full shadow-[0_4px_30px_rgba(0,0,0,0.5)] gap-6 md:gap-0">
+        <div className="flex items-center space-x-0 md:space-x-6 text-center md:text-left">
           <div className="flex flex-col">
-            <h1 className="text-6xl font-black uppercase tracking-tighter leading-none text-transparent bg-clip-text bg-gradient-to-r from-[#f8fafc] to-[#a3a3a3]">Live Results</h1>
-            <p className="text-sm text-[#FF3333] font-black uppercase tracking-[0.4em] mt-2">Fest 2026 // Real-time Vote Tracker</p>
+            {/* Adjusted font sizes for mobile */}
+            <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter leading-none text-transparent bg-clip-text bg-gradient-to-r from-[#f8fafc] to-[#a3a3a3]">
+              Live Results
+            </h1>
+            <p className="text-xs md:text-sm text-[#FF3333] font-black uppercase tracking-[0.2em] md:tracking-[0.4em] mt-2">
+              Fest 2026 // Real-time Vote Tracker
+            </p>
           </div>
         </div>
-        <div className="flex items-center space-x-8 text-right bg-[#181818] p-4 border border-[#222] rounded-xl">
-          <div className="flex flex-col items-end pr-6 border-r border-[#222]">
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mb-1">Total Votes Cast</p>
-            <p className="text-6xl font-black text-white lining-nums leading-none tracking-tighter drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]">{totalVotes.toLocaleString()}</p>
+
+        {/* Adjusted controls container to stack on mobile, stretch full width */}
+        <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-8 text-center md:text-right bg-[#181818] p-4 border border-[#222] rounded-xl w-full md:w-auto">
+          {/* Changed right border to bottom border on mobile */}
+          <div className="flex flex-col items-center sm:items-end pr-0 sm:pr-6 border-b sm:border-b-0 sm:border-r border-[#222] pb-4 sm:pb-0 w-full sm:w-auto">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mb-1">
+              Total Votes Cast
+            </p>
+            <p className="text-4xl md:text-6xl font-black text-white lining-nums leading-none tracking-tighter drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]">
+              {totalVotes.toLocaleString()}
+            </p>
           </div>
 
           <button
             onClick={clearAllVotes}
             disabled={isClearing}
-            className="flex items-center space-x-3 bg-[#FF3333]/10 hover:bg-[#FF3333]/30 text-[#FF3333] px-6 py-3 border border-[#FF3333] rounded-xl transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center justify-center space-x-3 bg-[#FF3333]/10 hover:bg-[#FF3333]/30 text-[#FF3333] px-4 md:px-6 py-3 border border-[#FF3333] rounded-xl transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
           >
             <Trash2 size={20} className={isClearing ? 'animate-spin' : ''} />
-            <span className="font-black uppercase tracking-[0.3em] text-sm">
+            <span className="font-black uppercase tracking-[0.3em] text-sm whitespace-nowrap">
               {isClearing ? 'Clearing...' : 'Clear Votes'}
             </span>
           </button>
         </div>
       </header>
+
       {/* Leaderboard Table */}
-      <main className="flex flex-col items-center justify-center py-12 px-4 w-full max-w-3xl mx-auto">
-        <h2 className="text-3xl font-black uppercase tracking-tight mb-8 text-center">Leaderboard</h2>
-        <div className="w-full bg-[#23272e]/80 border border-[#222] rounded-xl shadow-lg p-8">
+      {/* Adjusted padding for smaller screens */}
+      <main className="flex flex-col items-center justify-center py-8 md:py-12 px-2 md:px-4 w-full max-w-3xl mx-auto">
+        <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight mb-6 md:mb-8 text-center">
+          Leaderboard
+        </h2>
+        {/* Added overflow-x-auto to prevent table clipping on very narrow screens */}
+        <div className="w-full bg-[#23272e]/80 border border-[#222] rounded-xl shadow-lg p-4 md:p-8 overflow-x-auto">
           {leaderboard.length > 0 ? (
-            <table className="w-full text-left">
+            <table className="w-full text-left min-w-[300px]">
               <thead>
                 <tr>
-                  <th className="text-lg font-bold uppercase text-gray-400 pb-4">Position</th>
-                  <th className="text-lg font-bold uppercase text-gray-400 pb-4">Team</th>
-                  <th className="text-lg font-bold uppercase text-gray-400 pb-4">Votes</th>
+                  {/* Adjusted table header font sizes */}
+                  <th className="text-sm md:text-lg font-bold uppercase text-gray-400 pb-4 pr-2">Position</th>
+                  <th className="text-sm md:text-lg font-bold uppercase text-gray-400 pb-4">Team</th>
+                  <th className="text-sm md:text-lg font-bold uppercase text-gray-400 pb-4 text-right md:text-left">Votes</th>
                 </tr>
               </thead>
               <tbody>
                 {leaderboard.map((team, idx) => (
                   <tr key={team.team_id} className="border-b border-[#222] last:border-none">
-                    <td className="py-3 font-mono text-xl text-[#00FF66] font-black">{idx + 1}</td>
-                    <td className="py-3 font-black text-white text-lg uppercase">{team.name}</td>
-                    <td className="py-3 font-mono text-2xl text-[#FF3333] font-black">{team.vote_count}</td>
+                    {/* Adjusted table cell font sizes */}
+                    <td className="py-3 font-mono text-lg md:text-xl text-[#00FF66] font-black">{idx + 1}</td>
+                    <td className="py-3 font-black text-white text-base md:text-lg uppercase">{team.name}</td>
+                    <td className="py-3 font-mono text-xl md:text-2xl text-[#FF3333] font-black text-right md:text-left">{team.vote_count}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           ) : (
-            <div className="text-gray-400 text-xl font-bold text-center py-12">No teams or votes yet.</div>
+            <div className="text-gray-400 text-lg md:text-xl font-bold text-center py-12">
+              No teams or votes yet.
+            </div>
           )}
         </div>
       </main>
