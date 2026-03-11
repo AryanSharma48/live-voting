@@ -103,7 +103,7 @@ export default function AdminLiveLeaderboard() {
       .from('system_config')
       .select('value')
       .eq('key', 'voting_active')
-      .single();
+      .maybeSingle();
     if (data) setIsVotingEnabled(data.value);
   };
 

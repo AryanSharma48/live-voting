@@ -88,7 +88,7 @@ export default function VoterApp() {
         .from('system_config')
         .select('value')
         .eq('key', 'voting_active')
-        .single();
+        .maybeSingle();
       if (data !== null) setIsVotingEnabled(data.value);
     };
 
