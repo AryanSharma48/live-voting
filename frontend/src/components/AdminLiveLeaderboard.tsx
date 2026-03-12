@@ -99,7 +99,7 @@ export default function AdminLiveLeaderboard() {
 
 
   const { data: liveData } = useSWR(
-    user && (user as AdminUser).email === ADMIN_EMAIL ? `${API_URL}/api/live-counts` : null,
+    user && (user as AdminUser).email === ADMIN_EMAIL ? `/api/live-counts` : null,
     fetcher,
     { refreshInterval: 3000 }
   );

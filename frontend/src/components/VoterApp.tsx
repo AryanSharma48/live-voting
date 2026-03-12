@@ -60,7 +60,7 @@ export default function VoterApp() {
   const googleBtnRef = useRef<HTMLDivElement>(null);
 
   // Poll for current_voting_session
-  const { data: liveData } = useSWR(`${API_URL}/api/live-counts`, fetcher, { refreshInterval: 3000 });
+  const { data: liveData } = useSWR(`/api/live-counts`, fetcher, { refreshInterval: 3000 });
 
   useEffect(() => {
     if (liveData && liveData.current_voting_session && user) {
