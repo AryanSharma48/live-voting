@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import useSWR from 'swr';
 import { supabase } from '../lib/supabase';
 import { Trash2, Lock, Unlock, LogOut } from 'lucide-react'; // Added Lock icons
 
@@ -14,6 +15,8 @@ interface AdminUser {
 }
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
+const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 export default function AdminLiveLeaderboard() {
 
@@ -95,46 +98,42 @@ export default function AdminLiveLeaderboard() {
   };
 
 
-  const pollLiveCounts = async () => {
-    try {
-      const res = await fetch(`${API_URL}/api/live-counts`);
-      const data = await res.json();
-      
-      if (data.counts) {
-        setLeaderboard((current) => {
-          let updated = current.map(team => {
-            const redisCount = data.counts[team.team_id];
-            return {
-              ...team,
-              vote_count: redisCount ? parseInt(redisCount) : team.vote_count
-            };
-          });
-          
-          updated.sort((a, b) => {
-            if (b.vote_count !== a.vote_count) return b.vote_count - a.vote_count;
-            return a.name.localeCompare(b.name);
-          });
-          
-          // Calculate new total
-          const newTotal = updated.reduce((acc, curr) => acc + curr.vote_count, 0);
-          setTotalVotes(newTotal);
-          
-          return updated;
+  const { data: liveData } = useSWR(
+    user && (user as AdminUser).email === ADMIN_EMAIL ? `${API_URL}/api/live-counts` : null,
+    fetcher,
+    { refreshInterval: 3000 }
+  );
+
+  useEffect(() => {
+    if (liveData && liveData.counts) {
+      setLeaderboard((current) => {
+        let updated = current.map(team => {
+          const redisCount = liveData.counts[team.team_id];
+          return {
+            ...team,
+            vote_count: redisCount !== undefined ? parseInt(redisCount) : team.vote_count
+          };
         });
-      }
-    } catch (err) {
-      console.error('Failed to poll counts:', err);
+        
+        updated.sort((a, b) => {
+          if (b.vote_count !== a.vote_count) return b.vote_count - a.vote_count;
+          return a.name.localeCompare(b.name);
+        });
+        
+        // Calculate new total
+        const newTotal = updated.reduce((acc, curr) => acc + curr.vote_count, 0);
+        setTotalVotes(newTotal);
+        
+        return updated;
+      });
     }
-  };
+  }, [liveData]);
 
   useEffect(() => {
     if (!user || (user as AdminUser).email !== ADMIN_EMAIL) return;
 
     fetchLeaderboard();
     fetchInitialConfig();
-
-    // Smart Polling: Fetch live counts from Redis every 3 seconds
-    const intervalId = setInterval(pollLiveCounts, 3000);
 
     // --- Realtime listener for Config Toggle ---
     const configChannel = supabase
@@ -147,7 +146,6 @@ export default function AdminLiveLeaderboard() {
       .subscribe();
 
     return () => {
-      clearInterval(intervalId);
       supabase.removeChannel(configChannel);
     };
   }, [user]);

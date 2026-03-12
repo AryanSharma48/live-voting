@@ -16,6 +16,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     'Access-Control-Allow-Headers',
     'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
   );
+  res.setHeader('Cache-Control', 'no-store, max-age=0');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -31,10 +32,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Let's assume the previous backend used a pattern, or we create a new standard here.
     // If we use individual keys: `team_votes:*`
     // Or better, a single Redis Hash mapping team_id -> count: `live_leaderboard`
-    const teamsHashes = await redis.hgetall('live_leaderboard');
+    const [teamsHashes, currentSession] = await Promise.all([
+      redis.hgetall('live_leaderboard'),
+      redis.get('current_voting_session')
+    ]);
     
     // If the hash is empty, we return an empty object
-    return res.status(200).json({ counts: teamsHashes || {} });
+    return res.status(200).json({ 
+      counts: teamsHashes || {},
+      current_voting_session: currentSession || null
+    });
   } catch (error: any) {
     console.error('Fetch live counts error:', error.message);
     return res.status(500).json({ error: 'Failed to fetch live counts' });

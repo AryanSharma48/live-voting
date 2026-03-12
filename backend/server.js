@@ -148,10 +148,26 @@ app.delete('/api/votes', async (req, res) => {
     }
 
     try {
-      const keys = await redis.keys('voted:*');
-      if (keys.length > 0) {
-        await redis.del(...keys);
-      }
+      // Use SCAN to avoid blocking Redis under high traffic burst
+      let cursor = 0;
+      do {
+        // scan(cursor, { match: 'pattern', count: NUM })
+        // Note: @upstash/redis scan returns [cursor, keys] arrays
+        const result = await redis.scan(cursor, { match: 'voted:*', count: 500 });
+        const nextCursor = result[0];
+        const keys = result[1];
+        
+        cursor = Number(nextCursor);
+        if (keys.length > 0) {
+          await redis.del(...keys);
+        }
+      } while (cursor !== 0);
+
+      // Reset the leaderboard hash just in case
+      await redis.del('live_leaderboard');
+
+      // Set the new session ID to trigger frontend unlock
+      await redis.set('current_voting_session', Date.now().toString());
     } catch (redisErr) {
       console.warn('Redis lock cleanup failed (non-critical):', redisErr);
     }

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import useSWR from 'swr';
 import { supabase } from '../lib/supabase';
 import { Check, Flame, AlertCircle, LogOut, CheckCircle2, Lock } from 'lucide-react';
 
@@ -25,6 +26,8 @@ declare global {
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+
+const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 // A helper for team-specific border/accent colors based on index
 const teamColors = [
@@ -55,6 +58,25 @@ export default function VoterApp() {
   const [isVotingEnabled, setIsVotingEnabled] = useState<boolean>(true);
   
   const googleBtnRef = useRef<HTMLDivElement>(null);
+
+  // Poll for current_voting_session
+  const { data: liveData } = useSWR(`${API_URL}/api/live-counts`, fetcher, { refreshInterval: 3000 });
+
+  useEffect(() => {
+    if (liveData && liveData.current_voting_session && user) {
+      const storedSession = localStorage.getItem(`session_${user.id}`);
+      const incomingSession = String(liveData.current_voting_session);
+      
+      if (storedSession !== incomingSession) {
+        // We have a new session from the admin clearing votes!
+        localStorage.setItem(`session_${user.id}`, incomingSession);
+        
+        // Wipe local lock
+        setVoted(false);
+        localStorage.removeItem(`local_voted_${user.id}`);
+      }
+    }
+  }, [liveData, user]);
 
   const decodeJwt = (token: string) => {
     const base64Url = token.split('.')[1];
