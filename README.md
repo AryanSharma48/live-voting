@@ -1,4 +1,4 @@
-# 🌌 Oneiros 2026 // Live Voting Application
+# 🌌 Oneiros 2026 - Live Voting Application
 
 A highly concurrent, real-time voting and leaderboard system designed to handle massive traffic bursts (1,500+ users) smoothly and securely.
 
