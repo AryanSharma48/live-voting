@@ -127,6 +127,14 @@ app.post('/api/vote', async (req, res) => {
       return res.status(503).json({ error: 'Service temporarily unavailable. Try again.' });
     }
 
+    // Increment the live leaderboard cache
+    try {
+      await redis.hincrby('live_leaderboard', teamId, 1);
+    } catch (redisErr) {
+      console.error('Failed to increment live leaderboard:', redisErr);
+      // Non-blocking error: Supabase works, live counts just won't reflect it instantly
+    }
+
     return res.status(200).json({ message: 'Vote Recorded' });
   } catch (error) {
     console.error('Vote processing error:', error);
