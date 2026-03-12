@@ -42,10 +42,6 @@ const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 // Fetcher with auth header
-const authFetcher = (url: string, credential: string) => 
-  fetch(url, {
-    headers: { 'Authorization': `Bearer ${credential}` }
-  }).then(res => res.json());
 
 // A helper for team-specific border/accent colors based on index
 const teamColors = [
